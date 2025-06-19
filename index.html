@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Just Music 🎶</title>
+  <link rel="icon" href="/img/icono.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap" rel="stylesheet">
+
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f3f4f6, #e2e8f0);
+      color: #1f2937;
+      padding: 2rem;
+    }
+
+  h1 {
+      font-family: 'Cinzel', regular;
+      color: #4f46e5;
+      font-size: 3rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+
+    .busqueda {
+      max-width: 800px;
+      margin: 0 auto 2rem;
+      display: flex;
+      gap: 1rem;
+    }
+
+    select, input {
+      padding: 0.6rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      flex: 1;
+    }
+
+    button {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #4338ca;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      background: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #e5e7eb;
+      text-align: left;
+    }
+
+    th {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .subtitulo {
+      margin-top: 2rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .sin-resultados {
+      text-align: center;
+      font-style: italic;
+      color: #6b7280;
+    }
+    /* Nueva barra unificada */
+.mejorada {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto 2rem;
+}
+
+.contenedor-barra {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  flex: 1;
+  min-width: 300px;
+}
+
+.contenedor-barra select {
+  border: none;
+  padding: 0.6rem 0.8rem;
+  background: #f3f4f6;
+  color: #1f2937;
+  font-size: 1rem;
+  outline: none;
+  appearance: none;
+}
+
+.separador {
+  width: 1px;
+  height: 2rem;
+  background-color: #cbd5e1;
+}
+
+.contenedor-barra input {
+  border: none;
+  padding: 0.6rem 1rem;
+  flex: 1;
+  font-size: 1rem;
+  outline: none;
+  background: white;
+  color: #1f2937;
+}
+
+.mejorada button {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.mejorada button:hover {
+  background: #4338ca;
+}
+#gif-area {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+#gif {
+  max-height: 200px;
+  display: none;
+  margin: auto;
+}
+
+
+  
+  </style> 
+</head>
+<body>
+  <h1>🎵 Just Music - Buscador</h1>
+
+<form onsubmit="buscar(); return false;" class="busqueda mejorada">
+  <div class="contenedor-barra">
+<select id="modo" required>
+  <option value="" disabled selected>🔍 Seleccione una opción</option>
+  <option value="cancion">🎶 Canción</option>
+  <option value="cantante">🎤 Cantante</option>
+  <option value="nacionalidad">🌍 Nacionalidad</option>
+</select>
+
+    <div class="separador"></div>
+    <input id="busqueda" placeholder="Escribí aquí..." />
+  </div>
+  <button type="submit">Buscar</button>
+</form>
+
+  <div id="resultados"></div>
+
+  <script>
+    const API = "https://mkinvzztvwpjcoucmiey.supabase.co/rest/v1/";
+    const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1raW52enp0dndwamNvdWNtaWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NTEzODcsImV4cCI6MjA2NTQyNzM4N30.7Gg8OqjYRLIOhonRw8QA3n3xhZwRnCFhT9hdjEyds58";
+
+    const headers = {
+      headers: {
+        apikey: KEY,
+        Authorization: "Bearer " + KEY
+      }
+    };
+
+    async function buscar() {
+      const modo = document.getElementById("modo").value;
+      const valor = document.getElementById("busqueda").value.toLowerCase();
+      const contenedor = document.getElementById("resultados");
+      contenedor.innerHTML = "";
+
+      const [cantantes, canciones, lanzamientos] = await Promise.all([
+        fetch(API + "Cantante", headers).then(r => r.json()),
+        fetch(API + "Canción", headers).then(r => r.json()),
+        fetch(API + "lanza", headers).then(r => r.json())
+      ]);
+
+      if (modo === "cancion") {
+        const coincidencias = canciones.filter(c => c.titulo.toLowerCase().includes(valor));
+        if (coincidencias.length === 0) return contenedor.innerHTML = `<p class="sin-resultados">No se encontró ninguna canción con ese nombre.</p>`;
+
+        coincidencias.forEach(c => {
+          const lanzada = lanzamientos.find(l => l.idCancion === c.idCancion);
+          const cantante = cantantes.find(can => can.idCantante === lanzada?.idCantante);
+          contenedor.innerHTML += `
+            <table>
+              <thead>
+                <tr><th colspan="3">🎶 ${c.titulo}</th></tr>
+                <tr><th>Álbum</th><th>Género</th><th>Duración</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>${c.nombreAlbum || "-"}</td><td>${c.genero || "-"}</td><td>${c.duracion || "-"}</td></tr>
+              </tbody>
+            </table>
+            <div class="subtitulo">🎤 Interpretada por: ${cantante?.nomArtistico || "Desconocido"}</div>
+          `;
+        });
+
+      } else if (modo === "cantante") {
+        const c = cantantes.find(c => c.nomArtistico.toLowerCase().includes(valor));
+        if (!c) return contenedor.innerHTML = `<p class="sin-resultados">No se encontró ningún cantante con ese nombre.</p>`;
+
+        const susLanzamientos = lanzamientos.filter(l => l.idCantante === c.idCantante);
+        const cancionesDel = susLanzamientos.map(l => canciones.find(can => can.idCancion === l.idCancion));
+
+        contenedor.innerHTML = `
+          <table>
+            <thead>
+              <tr><th colspan="3">🎤 ${c.nomArtistico} (${c.nacionalidad})</th></tr>
+              <tr><th>Canción</th><th>Género</th><th>Fecha</th></tr>
+            </thead>
+            <tbody>
+              ${cancionesDel.map((can, i) => `
+                <tr>
+                  <td>${can?.titulo || "-"}</td>
+                  <td>${can?.genero || "-"}</td>
+                  <td>${susLanzamientos[i].fecha || "-"}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+
+      } else if (modo === "nacionalidad") {
+        const filtrados = cantantes.filter(c => c.nacionalidad.toLowerCase().includes(valor));
+        if (filtrados.length === 0) return contenedor.innerHTML = `<p class="sin-resultados">No se encontraron cantantes de esa nacionalidad.</p>`;
+
+        filtrados.forEach(c => {
+          contenedor.innerHTML += `
+            <table>
+              <thead>
+                <tr><th>Nombre artístico</th><th>Tipo</th><th>Nacionalidad</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>${c.nomArtistico}</td><td>${c.tipo}</td><td>${c.nacionalidad}</td></tr>
+              </tbody>
+            </table>
+          `;
+        });
+      }
+    }
+     document.getElementById("modo").addEventListener("change", function () {
+    const gif = document.getElementById("gif");
+    const seleccion = this.value;
+
+    let ruta = "";
+
+    if (seleccion === "cancion") ruta = "img/cancion.gif";
+    if (seleccion === "cantante") ruta = "img/cantante.gif";
+    if (seleccion === "nacionalidad") ruta = "img/nacionalidad.gif";
+
+    gif.src = ruta;
+    gif.style.display = "block";
+  });
+
+  </script>
+  <div id="gif-area">
+  <img id="gif" src="" alt="GIF ilustrativo">
+</div>
+
+</body>
+</html>
